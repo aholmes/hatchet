@@ -1,6 +1,7 @@
 import pytest
 import sys
 import os
+import glob
 from io import BytesIO as StringIO
 from mock import patch
 import hashlib
@@ -22,6 +23,19 @@ SOLVE = os.path.join(os.path.dirname(hatchet.__file__), 'solve')
 
 
 @pytest.fixture(scope='module')
+def bams():
+    bam_directory = config.tests.bam_directory
+    normal_bam = os.path.join(bam_directory, 'normal.bam')
+    if not os.path.exists(normal_bam):
+        pytest.skip('File not found: {}/{}'.format(bam_directory, normal_bam))
+    tumor_bams = sorted([f for f in glob.glob(bam_directory + '/*.bam') if os.path.basename(f) != 'normal.bam'])
+    if not tumor_bams:
+        pytest.skip('No tumor bams found in {}'.format(bam_directory))
+
+    return normal_bam, tumor_bams
+
+
+@pytest.fixture(scope='module')
 def output_folder():
     out = os.path.join(this_dir, 'out')
     shutil.rmtree(out, ignore_errors=True)
@@ -34,41 +48,56 @@ def output_folder():
 @pytest.mark.skipif(not config.paths.samtools, reason='paths.samtools not set')
 @pytest.mark.skipif(not config.paths.bcftools, reason='paths.bcftools not set')
 @patch('hatchet.utils.ArgParsing.extractChromosomes', return_value=['chr22'])
-def test_script(_, output_folder):
+def test_script(_, bams, output_folder):
+    normal_bam, tumor_bams = bams
 
-    binBAM(args=[
-        '-N', os.path.join(DATA_FOLDER, 'SRR5906250-chr22.sorted.bam'),
-        '-T', os.path.join(DATA_FOLDER, 'SRR5906251-chr22.sorted.bam'),
-              os.path.join(DATA_FOLDER, 'SRR5906253-chr22.sorted.bam'),
-        '-b', '50kb',
-        '-st', config.paths.samtools,
-        '-S', 'Normal', 'TumorOP', 'Tumor2',
-        '-g', config.paths.hg19,
-        '-j', '12',
-        '-q', '11',
-        '-O', os.path.join(output_folder, 'bin/normal.bin'),
-        '-o', os.path.join(output_folder, 'bin/bulk.bin'),
-        '-v'
-    ])
+    binBAM(
+        args=[
+            '-N', normal_bam,
+            '-T'
+        ] + tumor_bams + [
+            '-b', '50kb',
+            '-st', config.paths.samtools,
+            '-S', 'Normal', 'TumorOP', 'Tumor2',
+            '-g', config.paths.hg19,
+            '-j', '12',
+            '-q', '11',
+            '-O', os.path.join(output_folder, 'bin/normal.bin'),
+            '-o', os.path.join(output_folder, 'bin/bulk.bin'),
+            '-v'
+        ]
+    )
 
-    deBAF(args=[
-        '-bt', config.paths.bcftools,
-        '-st', config.paths.samtools,
-        '-N', os.path.join(DATA_FOLDER, 'SRR5906250-chr22.sorted.bam'),
-        '-T', os.path.join(DATA_FOLDER, 'SRR5906251-chr22.sorted.bam'),
-              os.path.join(DATA_FOLDER, 'SRR5906253-chr22.sorted.bam'),
-        '-S', 'Normal', 'TumorOP', 'Tumor2',
-        '-r', config.paths.hg19,
-        '-j', '12',
-        '-q', '11',
-        '-Q', '11',
-        '-U', '11',
-        '-c', '8',
-        '-C', '300',
-        '-O', os.path.join(output_folder, 'baf/normal.baf'),
-        '-o', os.path.join(output_folder, 'baf/bulk.baf'),
-        '-v'
-    ])
+    assert hashlib.md5(open(os.path.join(output_folder, 'bin/normal.bin')).read()).hexdigest() == \
+           '446f6310174119ec0b83c7c54b00e86d'
+    assert hashlib.md5(open(os.path.join(output_folder, 'bin/bulk.bin')).read()).hexdigest() == \
+           '62be95f6b907750761fd5edab1d6092b'
+
+    deBAF(
+        args=[
+                 '-bt', config.paths.bcftools,
+                 '-st', config.paths.samtools,
+                 '-N', normal_bam,
+                 '-T'
+             ] + tumor_bams + [
+                 '-S', 'Normal', 'TumorOP', 'Tumor2',
+                 '-r', config.paths.hg19,
+                 '-j', '12',
+                 '-q', '11',
+                 '-Q', '11',
+                 '-U', '11',
+                 '-c', '8',
+                 '-C', '300',
+                 '-O', os.path.join(output_folder, 'baf/normal.baf'),
+                 '-o', os.path.join(output_folder, 'baf/bulk.baf'),
+                 '-v'
+             ]
+    )
+
+    assert hashlib.md5(open(os.path.join(output_folder, 'baf/normal.baf')).read()).hexdigest() == \
+           'c05ca693fd37a0369397e6ef68e6fdf3'
+    assert hashlib.md5(open(os.path.join(output_folder, 'baf/bulk.baf')).read()).hexdigest() == \
+           'e920b6c3420fdae9900ca447ac03e1d4'
 
     _stdout = sys.stdout
     sys.stdout = StringIO()
@@ -87,6 +116,9 @@ def test_script(_, output_folder):
 
     with open(os.path.join(output_folder, 'bb/bulk.bb'), 'w') as f:
         f.write(out)
+
+    assert hashlib.md5(open(os.path.join(output_folder, 'bb/bulk.bb')).read()).hexdigest() == \
+           '8500f4a19fc7881bcb12046b64f443f9'
 
     cluBB(args=[
         os.path.join(output_folder, 'bb/bulk.bb'),
