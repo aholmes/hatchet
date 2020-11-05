@@ -6,8 +6,8 @@ import math
 import copy
 import numpy as np
 
-from ArgParsing import parse_clubb_args
-import Supporting as sp
+from .ArgParsing import parse_clubb_args
+from . import Supporting as sp
 
 
 def main(args=None):

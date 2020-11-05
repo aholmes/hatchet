@@ -8,11 +8,11 @@ from scipy.stats import beta
 # from statsmodels.stats.proportion import *
 
 
-import SNPCalling
-import AlleleCounting
-import ArgParsing as ap
-from Supporting import *
-import Supporting as sp
+from . import SNPCalling
+from . import AlleleCounting
+from . import ArgParsing as ap
+from .Supporting import *
+from . import Supporting as sp
 
 
 def main(args=None):

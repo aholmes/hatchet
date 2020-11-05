@@ -73,18 +73,16 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     zip_safe=False,
 
-    python_requires='~=2.7',
+    python_requires='>=3',
 
     install_requires=[
         'cython',
-        'biopython==1.76',
-        'bnpy',
+        'biopython',
+        # 'bnpy',
         'futures',
-        'importlib_resources>=1.0.2',
         'matplotlib',
         'matplotlib-venn',
-        'munkres<=1.0.12',
-        'opencv-python<=4.3.0.36',
+        'opencv-python',
         'pandas',
         'psutil',
         'pysam',

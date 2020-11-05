@@ -191,13 +191,13 @@ def main(args=None):
         diploidObjs = runningDiploid(neutral=neutral, args=args)
 
         if args['clonal'] is None:
-    	    sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
-    	    clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
+            sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
+            clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
         else:
-    	    sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
+            sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
             clonal, scale = parseClonalClusters(clonal=args['clonal'], fseg=fseg, neutral=neutral, size=size, samples=samples, v=args['v'])
 
-    	if len(clonal) > 0:
+        if len(clonal) > 0:
             sys.stderr.write(log("# Running tetraploid\n"))
             tetraploidObjs = runningTetraploid(clonal=clonal, scale=scale, size=size, args=args)
 
@@ -218,13 +218,13 @@ def main(args=None):
 
     elif args['tetraploid']:
         if args['clonal'] is None:
-    	    sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
-    	    clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
+            sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
+            clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
         else:
-    	    sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
+            sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
             clonal, scale = parseClonalClusters(clonal=args['clonal'], fseg=fseg, neutral=neutral, size=size, samples=samples, v=args['v'])
 
-    	if len(clonal) > 0:
+        if len(clonal) > 0:
             sys.stderr.write(log("# Running tetraploid\n"))
             tetraploidObjs = runningTetraploid(clonal=clonal, scale=scale, size=size, args=args)
 
@@ -866,7 +866,7 @@ def debug(msg):
 
 class ProgressBar:
 
-    def __init__(self, total, length, counter=0, verbose=False, decimals=1, fill=unichr(9608), prefix = 'Progress:', suffix = 'Complete'):
+    def __init__(self, total, length, counter=0, verbose=False, decimals=1, fill=chr(9608), prefix = 'Progress:', suffix = 'Complete'):
         self.total = total
         self.length = length
         self.decimals = decimals

@@ -4,10 +4,10 @@ import sys
 import os.path
 import argparse
 
-import BAMBinning as bb
-import TotalCounting as tc
-import ArgParsing as ap
-from Supporting import *
+from . import BAMBinning as bb
+from . import TotalCounting as tc
+from . import ArgParsing as ap
+from .Supporting import *
 
 
 
