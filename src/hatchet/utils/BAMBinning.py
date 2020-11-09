@@ -32,10 +32,6 @@ def bin(samtools, samples, chromosomes, num_workers, q, size, regions, verbose=F
     for i in range(len(workers)):
         tasks.put(None)
 
-    # from multiprocessing.popen_fork import Popen
-    # worker = workers[0]
-    # p = Popen(worker)
-
     # Start the workers
     for w in workers:
         w.start()
