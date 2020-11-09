@@ -612,7 +612,7 @@ def execute(args, basecmd, n, outprefix):
         sys.stderr.write(debug('### Running command: {}\n'.format(cmd)))
 
     FNULL = open(os.devnull, 'w')
-    process = subprocess.Popen(shlex.split(cmd), stdout=FNULL, stderr=subprocess.PIPE)
+    process = subprocess.Popen(shlex.split(cmd), stdout=FNULL, stderr=subprocess.PIPE, text=True)
     buffer = []
 
     if args['v'] >= 2:
@@ -890,7 +890,7 @@ class ProgressBar:
             toprint = rewind + result + " [%s]" % (msg)
         else:
             toprint = rewind + msg + "\n" + result
-        write(toprint.encode('utf-8'))
+        write(toprint)
         flush()
         if self.counter == self.total:
             write("\n")

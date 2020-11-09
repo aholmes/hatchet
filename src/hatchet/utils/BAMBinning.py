@@ -32,6 +32,10 @@ def bin(samtools, samples, chromosomes, num_workers, q, size, regions, verbose=F
     for i in range(len(workers)):
         tasks.put(None)
 
+    # from multiprocessing.popen_fork import Popen
+    # worker = workers[0]
+    # p = Popen(worker)
+
     # Start the workers
     for w in workers:
         w.start()
@@ -99,7 +103,7 @@ class Binner(Process):
             while index < end:
                 border = min(index+self.size, end)
                 cmd_reg = cmd + " {}:{}-{}".format(chromosome, index, border)
-                stdout, stderr = popen(split(cmd_reg), stdout=pipe, stderr=pipe).communicate()
+                stdout, stderr = popen(split(cmd_reg), stdout=pipe, stderr=pipe, text=True).communicate()
                 if stderr != "":
                     self.progress_bar.progress(advance=False, msg="{}{}: samtools warns \"{}\"on (sample={}, chromosome={}, region=({},{})){}".format(sp.bcolors.WARNING, self.name, stderr, samplename, chromosome, index, border, sp.bcolors.ENDC))
                 append((samplename, chromosome, index, border, stdout.strip()))
