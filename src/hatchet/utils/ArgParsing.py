@@ -21,8 +21,8 @@ def parse_baf_arguments(args=None):
     parser.add_argument("-st","--samtools", required=False, default=config.paths.samtools, type=str, help="Path to the directory to \"samtools\" executable, required in default mode (default: samtools is directly called as it is in user $PATH)")
     parser.add_argument("-bt","--bcftools", required=False, default=config.paths.bcftools, type=str, help="Path to the directory of \"bcftools\" executable, required in default mode (default: bcftools is directly called as it is in user $PATH)")
     parser.add_argument("-L","--snps", required=False, default=config.baf.snps, type=str, help="List of SNPs to consider in the normal sample (default: heterozygous SNPs are inferred from the normal sample)")
-    parser.add_argument("-e","--regions", required=False, default=config.baf.regions, type=str, help="BED file containing the a list of genomic regions to consider in the format \"CHR  START  END\", REQUIRED for WES data with coding regions (default: none, consider entire genome)")
-    parser.add_argument("-r","--reference", required=False, default=config.baf.reference, type=str, help="Human-genome reference corresponding to given samples, REQUIRED to run the recommended mode (default: none, running naive mode)")
+    parser.add_argument("-e","--regions", required=False, default=None, type=config.baf.regions, help="BED file containing the a list of genomic regions to consider in the format \"CHR  START  END\", REQUIRED for WES data with coding regions (default: none, consider entire genome)")
+    parser.add_argument("-r","--reference", required=False, default=config.paths.reference, type=str, help="Human-genome reference corresponding to given samples, REQUIRED to run the recommended mode (default: none, running naive mode)")
     parser.add_argument("-j", "--processes", required=False, default=config.baf.processes, type=int, help="Number of available parallel processes (default: 2)")
     parser.add_argument("-q", "--readquality", required=False, default=config.baf.readquality, type=int, help="Minimum mapping quality for an aligned read to be considered (default: 0)")
     parser.add_argument("-Q", "--basequality", required=False, default=config.baf.basequality, type=int, help="Minimum base quality for a base to be considered (default: 13)")
@@ -137,7 +137,7 @@ def parse_bin_arguments(args=None):
     parser.add_argument("-S","--samples", required=False, default=config.bin.samples, type=str, nargs='+', help="Sample names for each BAM, given in the same order where the normal name is first (default: inferred from file names)")
     parser.add_argument("-st","--samtools", required=False, default=config.paths.samtools, type=str, help="Path to the directory to \"samtools\" executable, required in default mode (default: samtools is directly called as it is in user $PATH)")
     parser.add_argument("-r","--regions", required=False, default=config.bin.regions, type=str, help="BED file containing the a list of genomic regions to consider in the format \"CHR  START  END\", REQUIRED for WES data (default: none, consider entire genome)")
-    parser.add_argument("-g","--reference", required=False, default=config.bin.reference, type=str, help="Reference genome, note that reference must be indexed and the dictionary must exist in the same directory with the same name and .dict extension")
+    parser.add_argument("-g","--reference", required=False, default=config.paths.reference, type=str, help="Reference genome, note that reference must be indexed and the dictionary must exist in the same directory with the same name and .dict extension")
     parser.add_argument("-j", "--processes", required=False, default=config.bin.processes, type=int, help="Number of available parallel processes (default: 2)")
     parser.add_argument("-q", "--readquality", required=False, default=config.bin.readquality, type=int, help="Minimum mapping quality for an aligned read to be considered (default: 0)")
     parser.add_argument("-O", "--outputnormal", required=False, default=config.bin.outputnormal, type=str, help="Filename of output for allele counts in the normal sample (default: standard output)")
@@ -154,7 +154,7 @@ def parse_bin_arguments(args=None):
         if(not os.path.isfile(tumor)): raise ValueError(sp.error("The specified normal BAM file does not exist"))
     names = args.samples
     if names != None and (len(tumors)+1) != len(names):
-        raise ValueError(sp.error(config.filenames))
+        raise ValueError(sp.error("A sample name must be provided for each corresponding BAM: both for each normal sample and each tumor sample"))
     normal = ()
     samples = set()
     if names is None:
@@ -233,7 +233,7 @@ def parse_combbo_args(args=None):
     parser.add_argument("-t","--totalcounts", required=False, default=config.combbo.totalcounts, type=str, help='Total read counts in the format "SAMPLE\tCOUNT" used to normalize by the different number of reads extracted from each sample (default: none)')
     parser.add_argument("-m","--mode", required=False, type=str, default=config.combbo.mode, help='Mode name of the method to use for combining different SNPs covering the same bin (default: MIRROR):\n\n{}MIRROR{}: for each SNP the B allele corresponds to the allele in lower proportion.\n\n{}BINOMIAL_TEST{}: In addition to the MIRROR method each bin is tested to be copy neutral by asking if 0.5 is in the confidence interval of the corresponding BETA distribution, in that case bin has BAF equal to 0.\n\n{}MOMENTS{}: The method of moments is applied where the BAF of each SNP is computed by considering the allele in lower proportion as B and the mean across the SNPs is computed. \n\n'.format(sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC))
     parser.add_argument("-g","--gamma",type=float,required=False, default=config.combbo.gamma, help='Confidence level used to determine if a bin is copy neutral with BAF of 0.5 in the BINOMIAL_TEST mode (default: 0.05)')
-    parser.add_argument("-e","--seed", type=int, required=False, default=0, help='Random seed used for the normal distributions used in the clouds (default: 0)')
+    parser.add_argument("-e","--seed", type=int, required=False, default=config.combbo.seed, help='Random seed used for the normal distributions used in the clouds (default: 0)')
     parser.add_argument("-s","--bootstrap", type=int, required=False, default=config.combbo.bootstrap, help='Number of draws for bootstrapping each SNP. Bootstrap significantly helps to estimate the BAF of each bin by combining the corresponding SNPs when SAMPLE or AVERAGE modes are used. (default: 100)')
     parser.add_argument("-dB","--bafdeviation", type=float, required=False, default=config.combbo.bafdeviation, help='Standard deviation of the BAFs used to generate the points in the clouds (default: 0.002)')
     parser.add_argument("-v", "--verbose", action='store_true', default=config.combbo.verbose, required=False, help="Use verbose log messages")
@@ -348,21 +348,23 @@ def parse_bbot_args(args=None):
     description = "Generate plots for read-depth ratio (RD), B-allele frequency (BAF), and clusters for genomic bins in multiple samples using .bb, .cbb, .seg files."
     parser = argparse.ArgumentParser(description=description, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("INPUT", help='Input BBC file with RDR and BAF')
-    parser.add_argument("-c", "--command", required=False, type=str, default=None, help="The command determining the plots to generate (default: all)\n\n\t{}RD{}: Plot the read-depth ratio (RD) values of the genomes for each sample.\n\n\t{}CRD{}: Plot the read-depth ratio (CRD) values of the genomes for each sample colored by corresponding cluster.\n\n\t{}BAF{}: Plot the B-allele frequency (BAF) values of the genomes for each sample.\n\n\t{}CBAF{}: Plot BAF values for each sample colored by corresponding cluster.\n\n\t{}BB{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each bin in all samples and their density.\n\n\t{}CBB{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each bin in all samples by coloring the bins depending on their cluster.\n\n\t{}CLUSTER{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each cluster in all samples where the size of the markers is proportional to the number of bins.".format(sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC))
-    parser.add_argument("-s", "--segfile", required=False, type=str, default=None, help="When the corresponding seg file is provided the clusters are also plotted (default: none)")
-    parser.add_argument("-m","--colormap", required=False, type=str, default="tab20",help='Colormap to use for the colors in the plots, the available colormaps are the following {Set1, Set2, Paired, Dark2, tab10, tab20}')
-    parser.add_argument("-tC","--chrthreshold", required=False, type=int, default=None,help='Only covering at least this number of chromosomes are considered (default: None)')
-    parser.add_argument("-tS","--sizethreshold", required=False, type=float, default=None,help='Only covering at least this genome proportion (default: None)')
-    parser.add_argument("--resolution", required=False, default=None, type=int, help='Resolution of bins (default: bins are not merged)')
-    parser.add_argument("--xmin", required=False, default=None, type=float, help='Minimum value on x-axis for supported plots (default: inferred from data)')
-    parser.add_argument("--xmax", required=False, default=None, type=float, help='Maximum value on x-axis for supported plots (default: inferred from data)')
-    parser.add_argument("--ymin", required=False, default=None, type=float, help='Minimum value on y-axis for supported plots (default: inferred from data)')
-    parser.add_argument("--ymax", required=False, default=None, type=float, help='Maximum value on y-axis for supported plots (default: inferred from data)')
-    parser.add_argument("--figsize", required=False, default=None, type=str, help='Size of the plotted figures in the form "(X-SIZE, Y-SIZE)"')
-    parser.add_argument("--markersize", required=False, default=0, type=int, help='Size of the markers (default: values inferred for each plot)')
-    parser.add_argument("--colwrap", required=False, default=2, type=int, help='Wrapping the plots in this number of columnes (default: 2)')
-    parser.add_argument("--fontscale", required=False, default=1, type=float, help='Font scale (default: 1)')
-    parser.add_argument("-x","--rundir", required=False, default='./', type=str, help='Running dirrectory where output the results (default: current directory)')
+    parser.add_argument("-c", "--command", required=False, type=str, default=config.bbot.command, help="The command determining the plots to generate (default: all)\n\n\t{}RD{}: Plot the read-depth ratio (RD) values of the genomes for each sample.\n\n\t{}CRD{}: Plot the read-depth ratio (CRD) values of the genomes for each sample colored by corresponding cluster.\n\n\t{}BAF{}: Plot the B-allele frequency (BAF) values of the genomes for each sample.\n\n\t{}CBAF{}: Plot BAF values for each sample colored by corresponding cluster.\n\n\t{}BB{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each bin in all samples and their density.\n\n\t{}CBB{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each bin in all samples by coloring the bins depending on their cluster.\n\n\t{}CLUSTER{}: Plot jointly the values of read-depth ratio (RD) and B-allele frequency (BAF) for each cluster in all samples where the size of the markers is proportional to the number of bins.".format(sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC, sp.bcolors.BOLD, sp.bcolors.ENDC))
+    parser.add_argument("-s", "--segfile", required=False, type=str, default=config.bbot.segfile, help="When the corresponding seg file is provided the clusters are also plotted (default: none)")
+    parser.add_argument("-m","--colormap", required=False, type=str, default=config.bbot.colormap,help='Colormap to use for the colors in the plots, the available colormaps are the following {Set1, Set2, Paired, Dark2, tab10, tab20}')
+    parser.add_argument("-tC","--chrthreshold", required=False, type=int, default=config.bbot.chrthreshold,help='Only covering at least this number of chromosomes are considered (default: None)')
+    parser.add_argument("-tS","--sizethreshold", required=False, type=float, default=config.bbot.sizethreshold,help='Only covering at least this genome proportion (default: None)')
+    parser.add_argument("--resolution", required=False, default=config.bbot.resolution, type=int, help='Resolution of bins (default: bins are not merged)')
+    parser.add_argument("--xmin", required=False, default=config.bbot.xmin, type=float, help='Minimum value on x-axis for supported plots (default: inferred from data)')
+    parser.add_argument("--xmax", required=False, default=config.bbot.xmax, type=float, help='Maximum value on x-axis for supported plots (default: inferred from data)')
+    parser.add_argument("--ymin", required=False, default=config.bbot.ymin, type=float, help='Minimum value on y-axis for supported plots (default: inferred from data)')
+    parser.add_argument("--ymax", required=False, default=config.bbot.ymax, type=float, help='Maximum value on y-axis for supported plots (default: inferred from data)')
+    parser.add_argument("--figsize", required=False, default=config.bbot.figsize, type=str, help='Size of the plotted figures in the form "(X-SIZE, Y-SIZE)"')
+    parser.add_argument("--markersize", required=False, default=config.bbot.markersize, type=int, help='Size of the markers (default: values inferred for each plot)')
+    parser.add_argument("--colwrap", required=False, default=config.bbot.colwrap, type=int, help='Wrapping the plots in this number of columnes (default: 2)')
+    parser.add_argument("--fontscale", required=False, default=config.bbot.fontscale, type=float, help='Font scale (default: 1)')
+    parser.add_argument("-x","--rundir", required=False, default=config.bbot.rundir, type=str, help='Running dirrectory where output the results (default: current directory)')
+    parser.add_argument("--pdf", action='store_true', default=config.bbot.pdf, required=False, help="Output the bb_clustered figure in PDF format (default: PNG)")
+    parser.add_argument("--dpi", required=False, default=config.bbot.dpi, type=int, help='DPI of PNG images (default: 900)')
     args = parser.parse_args(args)
 
     if not os.path.isfile(args.INPUT):
@@ -409,7 +411,10 @@ def parse_bbot_args(args=None):
             "figsize" : figsize,
             "markersize" : args.markersize,
             "colwrap" : args.colwrap,
-            "fontscale" : args.fontscale}
+            "fontscale" : args.fontscale,
+            "pdf" : args.pdf,
+            "dpi" : args.dpi
+    }
 
 
 def extractChromosomes(samtools, normal, tumors, reference=None):
@@ -442,7 +447,7 @@ def extractChromosomes(samtools, normal, tumors, reference=None):
 
     # Check consistency of chromosome names with the reference
     if reference is not None:
-        stdout, stderr = subprocess.Popen("grep -e \"^>\" {}".format(reference), stdout=subprocess.PIPE, shell=True, text=True).communicate()
+        stdout, stderr = subprocess.Popen("grep -e \"^>\" {}".format(reference), stdout=subprocess.PIPE, shell=True).communicate()
         if stderr is not None:
             raise ValueError("Error in reading the reference: {}".format(reference))
         else:
@@ -454,7 +459,7 @@ def extractChromosomes(samtools, normal, tumors, reference=None):
 
 
 def getSQNames(samtools, bamfile):
-    header, stderr = subprocess.Popen([samtools, "view", "-H", bamfile], stdout=subprocess.PIPE, shell=False, text=True).communicate()
+    header, stderr = subprocess.Popen([samtools, "view", "-H", bamfile], stdout=subprocess.PIPE, shell=False).communicate()
     if stderr is not None:
         raise ValueError("The header of the normal-sample BAM cannot be read with samtools!")
     names = set()
@@ -466,8 +471,8 @@ def getSQNames(samtools, bamfile):
 
 
 def checkVersions(samtools, bcftools):
-    samtools_version, samtools_stderr = subprocess.Popen([samtools, "--version-only"], stdout=subprocess.PIPE, shell=False, text=True).communicate()
-    bcftools_version, bcftools_stderr = subprocess.Popen([bcftools, "--version-only"], stdout=subprocess.PIPE, shell=False, text=True).communicate()
+    samtools_version, samtools_stderr = subprocess.Popen([samtools, "--version-only"], stdout=subprocess.PIPE, shell=False).communicate()
+    bcftools_version, bcftools_stderr = subprocess.Popen([bcftools, "--version-only"], stdout=subprocess.PIPE, shell=False).communicate()
     return samtools_version == bcftools_version and samtools_stderr is None and bcftools_stderr is None
 
 

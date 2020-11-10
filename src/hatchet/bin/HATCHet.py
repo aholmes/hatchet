@@ -46,8 +46,8 @@ def parsing_arguments(args=None):
     parser.add_argument("-u","--minprop", type=float, required=False, default=config.solver.minprop, help="Minimum clone proporion in each sample (default: 0.03)")
     parser.add_argument("--maxiterations", type=int, required=False, default=config.solver.maxiterations, help="Maximum number of iterations composed of C-step/U-step for each seed (default: 10)")
     parser.add_argument("--mode", type=int, required=False, default=config.solver.mode, help="Solving mode among: Coordinate Descent + exact ILP (0), exact ILP only (1), and Coordinate-descent only (2) (default: 2)")
-    parser.add_argument("--diploid", action='store_true', default=False, required=config.solver.diploid, help="Force the tumor clones to be diploid without WGD (default: false)")
-    parser.add_argument("--tetraploid", action='store_true', default=False, required=config.solver.tetraploid, help="Force the tumor clones to be tetraploid with an occured WGD (default: false)")
+    parser.add_argument("--diploid", action='store_true', default=config.solver.diploid, required=False, help="Force the tumor clones to be diploid without WGD (default: false)")
+    parser.add_argument("--tetraploid", action='store_true', default=config.solver.tetraploid, required=False, help="Force the tumor clones to be tetraploid with an occured WGD (default: false)")
     parser.add_argument("-v","--verbosity", type=int, required=False, default=config.solver.verbosity, help="Level of verbosity among: none (0), essential (1), verbose (2), and debug (3) (default: 1)")
     args = parser.parse_args(args)
 
@@ -191,13 +191,13 @@ def main(args=None):
         diploidObjs = runningDiploid(neutral=neutral, args=args)
 
         if args['clonal'] is None:
-            sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
-            clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
+    	    sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
+    	    clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
         else:
-            sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
+    	    sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
             clonal, scale = parseClonalClusters(clonal=args['clonal'], fseg=fseg, neutral=neutral, size=size, samples=samples, v=args['v'])
 
-        if len(clonal) > 0:
+    	if len(clonal) > 0:
             sys.stderr.write(log("# Running tetraploid\n"))
             tetraploidObjs = runningTetraploid(clonal=clonal, scale=scale, size=size, args=args)
 
@@ -218,13 +218,13 @@ def main(args=None):
 
     elif args['tetraploid']:
         if args['clonal'] is None:
-            sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
-            clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
+    	    sys.stderr.write(log("# Finding clonal clusters and their copy numbers\n"))
+    	    clonal, scale = findClonalClusters(fseg=fseg, neutral=neutral, size=size, tB=args['tB'], tR=args['tR'], samples=samples, v=args['v'])
         else:
-            sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
+    	    sys.stderr.write(log("# Parsing given clonal copy numbers\n"))
             clonal, scale = parseClonalClusters(clonal=args['clonal'], fseg=fseg, neutral=neutral, size=size, samples=samples, v=args['v'])
 
-        if len(clonal) > 0:
+    	if len(clonal) > 0:
             sys.stderr.write(log("# Running tetraploid\n"))
             tetraploidObjs = runningTetraploid(clonal=clonal, scale=scale, size=size, args=args)
 
@@ -801,37 +801,41 @@ def selectTetraploid(tetraploid, v, rundir, g, limit):
     sys.stderr.write(info('# The chosen solution is tetraploid with {} clones and is written in {} and {}\n'.format(tchosen[0], bbest, sbest)))
 
 
+def safediv(v):
+    return v if v > 0 else 1.0
+
+
 def forward(f, i, g, limit):
     if limit is None:
         left = g
     else:
         left = min(g, limit)
-    right = float(max(f[i][1] - f[i + 1][1], 0.0) / f[i][1])
+    right = float(max(f[i][1] - f[i + 1][1], 0.0) / safediv(f[i][1]))
     return left - right
 
 
 def estimate_forward(f, i, g, knw, limit):
-    left = max(g, float(max(knw[i][1] - knw[i + 1][1], 0.0) / knw[i][1]))
+    left = max(g, float(max(knw[i][1] - knw[i + 1][1], 0.0) / safediv(knw[i][1])))
     if limit is not None:
         left = min(left, limit)
-    right = float(max(f[i][1] - f[i + 1][1], 0.0) / f[i][1])
+    right = float(max(f[i][1] - f[i + 1][1], 0.0) / safediv(f[i][1]))
     return left - right
 
 
 def central(f, i, g, limit):
     if limit is None:
-        left = float(max(f[i - 1][1] - f[i][1], 0.0) / f[i - 1][1])
+        left = float(max(f[i - 1][1] - f[i][1], 0.0) / safediv(f[i - 1][1]))
     else:
-        left = min(limit, float(max(f[i - 1][1] - f[i][1], 0.0) / f[i - 1][1]))
-    right = float(max(f[i][1] - f[i + 1][1], 0.0) / f[i][1])
+        left = min(limit, float(max(f[i - 1][1] - f[i][1], 0.0) / safediv(f[i - 1][1])))
+    right = float(max(f[i][1] - f[i + 1][1], 0.0) / safediv(f[i][1]))
     return left - right
     
 
 def backward(f, i, g, limit):
     if limit is None:
-        left = float(max(f[i - 1][1] - f[i][1], 0.0) / f[i - 1][1])
+        left = float(max(f[i - 1][1] - f[i][1], 0.0) / safediv(f[i - 1][1]))
     else:
-        left = min(limit, float(max(f[i - 1][1] - f[i][1], 0.0) / f[i - 1][1]))
+        left = min(limit, float(max(f[i - 1][1] - f[i][1], 0.0) / safediv(f[i - 1][1])))
     right = g
     return left - right
 

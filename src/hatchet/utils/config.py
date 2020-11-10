@@ -59,7 +59,6 @@ class Config(object):
     def __init__(self, name, filenames):
         self.name = name
         self.config = configparser.ConfigParser(inline_comment_prefixes='#')
-        self.filenames = filenames
         self.init_from_files(filenames)
 
     def init_from_files(self, filenames):

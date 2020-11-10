@@ -6,7 +6,6 @@ from io import StringIO
 from mock import patch
 import hashlib
 import shutil
-import bnpy
 
 import hatchet
 from hatchet import config
@@ -44,7 +43,7 @@ def output_folder():
     return out
 
 
-@pytest.mark.skipif(not config.paths.hg19, reason='paths.hg19 not set')
+@pytest.mark.skipif(not config.paths.reference, reason='paths.reference not set')
 @pytest.mark.skipif(not config.paths.samtools, reason='paths.samtools not set')
 @pytest.mark.skipif(not config.paths.bcftools, reason='paths.bcftools not set')
 @patch('hatchet.utils.ArgParsing.extractChromosomes', return_value=['chr22'])
@@ -58,8 +57,8 @@ def test_script(_, bams, output_folder):
         ] + tumor_bams + [
             '-b', '50kb',
             '-st', config.paths.samtools,
-            '-S', 'Normal', 'TumorOP', 'Tumor2',
-            '-g', config.paths.hg19,
+            '-S', 'Normal', 'Tumor1', 'Tumor2', 'Tumor3',
+            '-g', config.paths.reference,
             '-j', '12',
             '-q', '11',
             '-O', os.path.join(output_folder, 'bin/normal.bin'),
@@ -75,29 +74,24 @@ def test_script(_, bams, output_folder):
 
     deBAF(
         args=[
-                 '-bt', config.paths.bcftools,
-                 '-st', config.paths.samtools,
-                 '-N', normal_bam,
-                 '-T'
-             ] + tumor_bams + [
-                 '-S', 'Normal', 'TumorOP', 'Tumor2',
-                 '-r', config.paths.hg19,
-                 '-j', '12',
-                 '-q', '11',
-                 '-Q', '11',
-                 '-U', '11',
-                 '-c', '8',
-                 '-C', '300',
-                 '-O', os.path.join(output_folder, 'baf/normal.baf'),
-                 '-o', os.path.join(output_folder, 'baf/bulk.baf'),
-                 '-v'
-             ]
+            '-bt', config.paths.bcftools,
+            '-st', config.paths.samtools,
+            '-N', normal_bam,
+            '-T'
+        ] + tumor_bams + [
+            '-S', 'Normal', 'Tumor1', 'Tumor2', 'Tumor3',
+            '-r', config.paths.reference,
+            '-j', '12',
+            '-q', '11',
+            '-Q', '11',
+            '-U', '11',
+            '-c', '8',
+            '-C', '300',
+            '-O', os.path.join(output_folder, 'baf/normal.baf'),
+            '-o', os.path.join(output_folder, 'baf/bulk.baf'),
+            '-v'
+        ]
     )
-
-    # assert hashlib.md5(open(os.path.join(output_folder, 'baf/normal.baf'), 'rb').read()).hexdigest() == \
-    #        'c05ca693fd37a0369397e6ef68e6fdf3'
-    # assert hashlib.md5(open(os.path.join(output_folder, 'baf/bulk.baf'), 'rb').read()).hexdigest() == \
-    #        'e920b6c3420fdae9900ca447ac03e1d4'
 
     _stdout = sys.stdout
     sys.stdout = StringIO()
@@ -117,9 +111,6 @@ def test_script(_, bams, output_folder):
     with open(os.path.join(output_folder, 'bb/bulk.bb'), 'w') as f:
         f.write(out)
 
-    # assert hashlib.md5(open(os.path.join(output_folder, 'bb/bulk.bb'), 'rb').read()).hexdigest() == \
-    #        '8500f4a19fc7881bcb12046b64f443f9'
-
     cluBB(args=[
         os.path.join(output_folder, 'bb/bulk.bb'),
         '-o', os.path.join(output_folder, 'bbc/bulk.seg'),
@@ -130,8 +121,8 @@ def test_script(_, bams, output_folder):
         '-d', '0.4'  # 0.08 in script
     ])
 
-    # assert hashlib.md5(open(os.path.join(output_folder, 'bbc/bulk.seg'), 'rb').read()).hexdigest() == \
-    #        '4204e4c4eb561fc1732e5a010d231abe'
+    assert hashlib.md5(open(os.path.join(output_folder, 'bbc/bulk.seg'), 'rb').read()).hexdigest() == \
+           'df4245b616422ce0dc36d6ee3ac0ce88'
 
     if os.getenv('GRB_LICENSE_FILE') is not None:
         main(args=[
@@ -151,4 +142,5 @@ def test_script(_, bams, output_folder):
         ])
 
         assert hashlib.md5(open(os.path.join(output_folder, 'results/best.bbc.ucn'), 'rb').read()).hexdigest() == \
-               '87fabc8a40db6c14ea9d251f81ba0e2b'
+               'c85f8436fea10c1577d48b0a277d25ff'
+
