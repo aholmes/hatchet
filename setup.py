@@ -76,9 +76,8 @@ setup(
     python_requires='>=3',
 
     install_requires=[
-        'cython',
         'biopython',
-        # 'bnpy',
+        'bnpy@git+https://github.com/vineetbansal/bnpy',
         'futures',
         'matplotlib',
         'matplotlib-venn',
