@@ -88,7 +88,7 @@ setup(
 
     install_requires=[
         'biopython',
-        'bnpy@git+https://github.com/vineetbansal/bnpy',
+        'bnpy@git+https://github.com/raphael-group/bnpy.git',
         'futures',
         'matplotlib',
         'matplotlib-venn',

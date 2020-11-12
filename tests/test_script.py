@@ -17,7 +17,6 @@ from hatchet.bin.HATCHet import main as main
 
 
 this_dir = os.path.dirname(__file__)
-DATA_FOLDER = os.path.join(this_dir, 'data')
 SOLVE = os.path.join(os.path.dirname(hatchet.__file__), 'solve')
 
 
@@ -67,11 +66,6 @@ def test_script(_, bams, output_folder):
         ]
     )
 
-    # assert hashlib.md5(open(os.path.join(output_folder, 'bin/normal.bin'), 'rb').read()).hexdigest() == \
-    #        '446f6310174119ec0b83c7c54b00e86d'
-    # assert hashlib.md5(open(os.path.join(output_folder, 'bin/bulk.bin'), 'rb').read()).hexdigest() == \
-    #        '62be95f6b907750761fd5edab1d6092b'
-
     deBAF(
         args=[
             '-bt', config.paths.bcftools,
@@ -118,7 +112,7 @@ def test_script(_, bams, output_folder):
         '-e', '22171',  # random seed
         '-tB', '0.04',
         '-tR', '0.15',
-        '-d', '0.4'  # 0.08 in script
+        '-d', '0.4'
     ])
 
     assert hashlib.md5(open(os.path.join(output_folder, 'bbc/bulk.seg'), 'rb').read()).hexdigest() == \
@@ -129,7 +123,7 @@ def test_script(_, bams, output_folder):
             SOLVE,
             '-x', os.path.join(output_folder, 'results'),
             '-i', os.path.join(output_folder, 'bbc/bulk'),
-            '-n2',  # -n2,8 in script
+            '-n2',
             '-p', '400',
             '-v', '3',
             '-u', '0.03',
