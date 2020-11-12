@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 
 
@@ -109,7 +109,7 @@ def main():
         return comp
 
     log('Computing RDRs\n', level='PROGRESS')
-    cmd = 'python2 {} -N {} -T {} -S {} -b {} -g {} -j {} -q {} -O {} -o {}'
+    cmd = 'python3 {} -N {} -T {} -S {} -b {} -g {} -j {} -q {} -O {} -o {}'
     nbin = os.path.join(drdr, 'normal.bin')
     tbin = os.path.join(drdr, 'bulk.bin')
     cmd = cmd.format(get_comp('binBAM.py'), args['normal'], ' '.join(args['tumor']), 'normal ' + ' '.join(args['names']), args['size'], args['ref'], args['J'], args['phred'], nbin, tbin)
@@ -118,7 +118,7 @@ def main():
     runcmd(cmd, drdr, log="bins.log", rundir=args['rundir'])
 
     log('Computing BAFs\n', level='PROGRESS')
-    cmd = 'python2 {} -N {} -T {} -S {} -r {} -j {} -q {} -Q {} -U {} -c {} -C {} -O {} -o {}'
+    cmd = 'python3 {} -N {} -T {} -S {} -r {} -j {} -q {} -Q {} -U {} -c {} -C {} -O {} -o {}'
     nbaf = os.path.join(dbaf, 'normal.baf')
     tbaf = os.path.join(dbaf, 'bulk.baf')
     cmd = cmd.format(get_comp('deBAF.py'), args['normal'], ' '.join(args['tumor']), 'normal ' + ' '.join(args['names']), args['ref'], args['J'], args['phred'], args['phred'], args['phred'], args['minreads'], args['maxreads'], nbaf, tbaf)
@@ -130,7 +130,7 @@ def main():
 
     log('Combining RDRs and BAFs\n', level='PROGRESS')
     ctot = os.path.join(args['rundir'], 'total_read.counts')
-    cmd = 'python2 {} -c {} -C {} -B {} -m MIRROR -t {}'
+    cmd = 'python3 {} -c {} -C {} -B {} -m MIRROR -t {}'
     cmd = cmd.format(get_comp('comBBo.py'), nbin, tbin, tbaf, ctot)
     if args['seed'] is not None:
         cmd += " -e {}".format(args['seed'])
