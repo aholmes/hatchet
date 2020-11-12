@@ -440,7 +440,7 @@ def gridprofiles(tumor, base, clones, props, args, out):
     para['metric'] = cndistance
     para['figsize'] = args['clusterfigsize']
     para['col_colors'] = pd.DataFrame([{'index' : s, 'chromosomes' : col_colors[s]} for s in table.columns]).set_index('index')
-    para['row_colors'] = pd.DataFrame([dict({'index' : row}.items() + row_colors[row].items()) for row in table.index]).set_index('index')
+    para['row_colors'] = pd.DataFrame([dict(list({'index' : row}.items()) + list(row_colors[row].items())) for row in table.index]).set_index('index')
     g = sns.clustermap(**para)
 
     addchr(g, pos)
@@ -482,7 +482,7 @@ def gridprofilesreduced(tumor, base, clones, props, args, out):
     para['metric'] = cndistance
     para['figsize'] = args['clusterfigsize']
     para['col_colors'] = pd.DataFrame([{'index' : s, 'chromosomes' : col_colors[s]} for s in table.columns]).set_index('index')
-    para['row_colors'] = pd.DataFrame([dict({'index' : row}.items() + row_colors[row].items()) for row in table.index]).set_index('index')
+    para['row_colors'] = pd.DataFrame([dict(list({'index' : row}.items()) + list(row_colors[row].items())) for row in table.index]).set_index('index')
     g = sns.clustermap(**para)
 
     addchr(g, pos)
@@ -530,7 +530,7 @@ def gridmixtures(tumor, base, clones, props, args, out):
         para['metric'] = similaritysample
         para['figsize'] = args['clusterfigsize']
         para['col_colors'] = pd.DataFrame([{'index' : s, 'chromosomes' : col_colors[s]} for s in table.columns]).set_index('index')
-        para['row_colors'] = pd.DataFrame([dict({'index' : row}.items() + row_colors[row].items()) for row in table.index]).set_index('index')
+        para['row_colors'] = pd.DataFrame([dict(list({'index' : row}.items()) + list(row_colors[row].items())) for row in table.index]).set_index('index')
         g = sns.clustermap(**para)
 
     addchr(g, pos)
@@ -596,7 +596,7 @@ def subclonal(tumor, base, clones, props, args, out):
         para['metric'] = similarity
         para['figsize'] = args['clusterfigsize']
         para['col_colors'] = pd.DataFrame([{'index' : s, 'chromosomes' : col_colors[s]} for s in table.columns]).set_index('index')
-        para['row_colors'] = pd.DataFrame([dict({'index' : row}.items() + row_colors[row].items()) for row in table.index]).set_index('index')
+        para['row_colors'] = pd.DataFrame([dict(list({'index' : row}.items()) + list(row_colors[row].items())) for row in table.index]).set_index('index')
         g = sns.clustermap(**para)
         cax = plt.gcf().axes[-1]
         cax.set_yticklabels(labels)
