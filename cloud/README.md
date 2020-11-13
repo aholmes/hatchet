@@ -60,9 +60,9 @@ gcloud docker -- push gcr.io/durable-tracer-294016/hatchet
 gcloud alpha genomics pipelines run \
   --pipeline-file pipeline.yaml \
   --inputs normalbam=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/b9774dd35c320f70de8f2b81c15d5a98.bam \
-  --inputs normalbai=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/b9774dd35c320f70de8f2b81c15d5a98.bai \
+  --inputs normalbai=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/b9774dd35c320f70de8f2b81c15d5a98.bam.bai \
   --inputs tumorbam=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/2258e57e8e0af9db6969a1da86177ca7.bam \
-  --inputs tumorbai=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/2258e57e8e0af9db6969a1da86177ca7.bai \
+  --inputs tumorbai=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/2258e57e8e0af9db6969a1da86177ca7.bam.bai \
   --outputs outputPath=gs://durable-tracer-294016-hatchetbucket/output/ \
   --logging gs://durable-tracer-294016-hatchetbucket/logging/ \
   --disk-size datadisk:1000
