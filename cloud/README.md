@@ -37,6 +37,8 @@ isb-cgc-bq
 # build
 ```
 docker build -t hatchet .
+docker tag hatchet gcr.io/durable-tracer-294016/hatchet
+gcloud docker -- push gcr.io/durable-tracer-294016/hatchet
 ```
 
 # run locally
@@ -66,9 +68,40 @@ gcloud alpha genomics pipelines run \
   --outputs outputPath=gs://durable-tracer-294016-hatchetbucket/output/ \
   --logging gs://durable-tracer-294016-hatchetbucket/logging/ \
   --disk-size datadisk:1000
+  
+  
+python run.py --project durable-tracer-294016 --disk-size 2000 --zones us-east1-b \
+--output gs://durable-tracer-294016-hatchetbucket/output/ --logging gs://durable-tracer-294016-hatchetbucket/logging/
 ```
 
 # monitor operation
 ```
 ./poll.sh ENSTsezSLhisgcyR0Zm5iisgicXNrOUQKg9wcm9kdWN0aW9uUXVldWU 20
+```
+
+# Conda env
+```
+conda install -c conda-forge google-cloud-sdk google-api-python-client
+?pip install google-auth
+gcloud auth application-default login
+xi
+(asks to enable cloudresourcemanager api)
+python blah.py
+when trying to poll:
+
+Your current Cloud SDK version is: 318.0.0
+Installing components from version: 318.0.0
+
+┌──────────────────────────────────────────────────────────────────────┐
+│                 These components will be installed.                  │
+├──────────────────────────────────────────────┬────────────┬──────────┤
+│                     Name                     │  Version   │   Size   │
+├──────────────────────────────────────────────┼────────────┼──────────┤
+│ Cloud SDK Core Libraries                     │ 2020.11.06 │ 15.5 MiB │
+│ Cloud SDK Core Libraries (Platform Specific) │ 2020.07.10 │  < 1 MiB │
+│ gcloud Alpha Commands                        │ 2019.05.17 │  < 1 MiB │
+│ gcloud cli dependencies                      │ 2020.06.12 │  < 1 MiB │
+│ gcloud cli dependencies                      │ 2020.11.06 │ 10.6 MiB │
+└──────────────────────────────────────────────┴────────────┴──────────┘
+
 ```
