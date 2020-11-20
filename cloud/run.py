@@ -122,7 +122,7 @@ operation = service.pipelines().run(body={
           '$HATCHET_PATHS_SAMTOOLS/samtools faidx /mnt/data/hg19.fa && '
           '$HATCHET_PATHS_SAMTOOLS/samtools dict /mnt/data/hg19.fa > /mnt/data/hg19.dict && '
           'export HATCHET_PATHS_REFERENCE=/mnt/data/hg19.fa && '
-          'BINSIZE=50kb ./_run.sh'
+          'BINSIZE=50kb bash ./_run.sh'
       ),
     },
 

@@ -59,6 +59,10 @@ gcloud docker -- push gcr.io/durable-tracer-294016/hatchet
 
 # run pipeline
 ```
+
+gcloud auth application-default login
+gcloud auth application-default set-quota-project durable-tracer-294016
+
 gcloud alpha genomics pipelines run \
   --pipeline-file pipeline.yaml \
   --inputs normalbam=gs://gdc-tcga-phs000178-controlled/BRCA/DNA/WGS/WUGSC/ILLUMINA/b9774dd35c320f70de8f2b81c15d5a98.bam \
@@ -82,7 +86,7 @@ python run.py --project durable-tracer-294016 --disk-size 2000 --zones us-east1-
 # Conda env
 ```
 conda install -c conda-forge google-cloud-sdk google-api-python-client
-?pip install google-auth
+pip install oauth2client 
 gcloud auth application-default login
 xi
 (asks to enable cloudresourcemanager api)

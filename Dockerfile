@@ -55,5 +55,5 @@ COPY cloud/hatchet.ini /app
 # ------------------------------
 # Copy run script and execute it
 COPY cloud/_run.sh /app
-CMD ./_run.sh
+CMD bash ./_run.sh
 # ------------------------------
