@@ -61,18 +61,17 @@ EVA=${OUTPUT_FOLDER}/evaluation/
 
 mkdir -p ${BIN} ${BAF} ${BB} ${BBC} ${ANA} ${RES} ${EVA}
 
-python -m hatchet check -N ${NORMALBAM} -T ${TUMOR_BAMS} -S ${ALLNAMES} -b 50kb -o ${BIN}out.txt
-#python -m hatchet binBAM -N ${NORMALBAM} -T ${TUMOR_BAMS} -S ${ALLNAMES} -b 50kb -O ${BIN}normal.bin -o ${BIN}bulk.bin &> ${BIN}bins.log
-#python -m hatchet deBAF -N ${NORMALBAM} -T ${TUMOR_BAMS} -S ${ALLNAMES} -O ${BAF}normal.baf -o ${BAF}bulk.baf &> ${BAF}bafs.log
-#python -m hatchet comBBo -c ${BIN}normal.bin -C ${BIN}bulk.bin -B ${BAF}bulk.baf > ${BB}bulk.bb
-#python -m hatchet cluBB ${BB}bulk.bb -o ${BBC}bulk.seg -O ${BBC}bulk.bbc
+python -m hatchet binBAM -N ${NORMALBAM} -T ${TUMOR_BAMS} -S ${ALLNAMES} -b 50kb -O ${BIN}normal.bin -o ${BIN}bulk.bin &> ${BIN}bins.log
+python -m hatchet deBAF -N ${NORMALBAM} -T ${TUMOR_BAMS} -S ${ALLNAMES} -O ${BAF}normal.baf -o ${BAF}bulk.baf &> ${BAF}bafs.log
+python -m hatchet comBBo -c ${BIN}normal.bin -C ${BIN}bulk.bin -B ${BAF}bulk.baf > ${BB}bulk.bb
+python -m hatchet cluBB ${BB}bulk.bb -o ${BBC}bulk.seg -O ${BBC}bulk.bbc
 
-#cd ${ANA}
-#python -m hatchet BBot -c RD ${BBC}bulk.bbc
-#python -m hatchet BBot -c CRD ${BBC}bulk.bbc
-#python -m hatchet BBot -c BAF ${BBC}bulk.bbc
-#python -m hatchet BBot -c BB ${BBC}bulk.bbc
-#python -m hatchet BBot -c CBB ${BBC}bulk.bbc
+cd ${ANA}
+python -m hatchet BBot -c RD ${BBC}bulk.bbc
+python -m hatchet BBot -c CRD ${BBC}bulk.bbc
+python -m hatchet BBot -c BAF ${BBC}bulk.bbc
+python -m hatchet BBot -c BB ${BBC}bulk.bbc
+python -m hatchet BBot -c CBB ${BBC}bulk.bbc
 
 # ------------------------------------------------------
 # Commented out till the solver works inside a container

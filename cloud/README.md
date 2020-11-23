@@ -133,15 +133,22 @@ This is typically just a file with `.bai` appended to the filename.
 - Replace the `--disk-size` with an appropriate disk size (in GB) of your virtual machine (this will typically be dictated by the size of the BAMs),
 and replace `us-east1` with the appropriate [region](https://cloud.google.com/compute/docs/regions-zones) for the virtual machine (this will depend on your geographic location).
 
+> :exclamation: The most likely problem you will encounter in this entire scenario is to make sure that
+you have proper access to the above BAM/BAI files. You can save yourself a lot of time by executing a `gsutil stat gs://..`
+command on all your input files at this point, which will query these cloud files for details, and unearth any access issues in
+the process.
+
 Running the script `cloud_run.sh` will trigger a cloud operation that starts the process outlined in the section [above](#cloud_steps).
 
 **This command will wait (block) the command line till the process is complete.
 Depending on the size of your BAMs the complexity of your analysis, this may take several hours.**
 
 Note that pressing *Ctrl-C* on the terminal will stop the command from waiting for the completion of your operation, but your
-operation on the cloud will continue to run. To cancel the operation in the cloud, follow the instructions you see on the screen
+operation on the cloud will continue to run. To query the status of the operation in the cloud, follow the instructions you see on the screen
 when you ran the command. This will look something like:
 
 ```
-ddel --provider google-v2 --project ...
+dstat --provider google-v2 --project ...
 ```
+
+The folder you specify in the `--logging` flag in the above command will contain live logging output on a minute-by-minute basis, which is helpful in diagnosing potential issues.
