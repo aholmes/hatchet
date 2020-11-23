@@ -45,15 +45,3 @@ COPY tests /app/tests/
 # Install package
 # ----------------
 RUN CXXFLAGS=-pthread pip install .
-
-# ------------------------------------
-# Copy hatchet.ini to WORKDIR
-# to enable fine-grained customization
-# ------------------------------------
-COPY cloud/hatchet.ini /app
-
-# ------------------------------
-# Copy run script and execute it
-COPY cloud/_run.sh /app
-CMD bash ./_run.sh
-# ------------------------------
